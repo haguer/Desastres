@@ -20,6 +20,6 @@ namespace Desastres.Web.Data.Entities
         public string email { get; set; }
         [MaxLength(100, ErrorMessage = "la direcciñon debe ser menor de 100 caracteres.")]
         [Display(Name = "Dirección")]
-        public string direccion { get; set; }
+        public string direccion { get; set; }       
     }
 }
