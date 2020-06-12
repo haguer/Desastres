@@ -1,4 +1,6 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+using Microsoft.AspNetCore.Mvc.Rendering;
 
 namespace Desastres.Web.Models
 {
@@ -19,5 +21,10 @@ namespace Desastres.Web.Models
         [Display(Name = "Teléfono")]
         [MaxLength(30, ErrorMessage = "El Teléfono no puede tener más de {1} caracteres.")]
         public string PhoneNumber { get; set; }
+
+        [Range(1, int.MaxValue, ErrorMessage = "Debe seleccionar una Entidad.")]
+        [Display(Name = "Entidad")]
+        public int EntidadTypeId { get; set; }
+        public IEnumerable<SelectListItem> EntidadTypes { get; set; }
     }
 }

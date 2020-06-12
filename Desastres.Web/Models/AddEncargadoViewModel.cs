@@ -1,4 +1,7 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+using Desastres.Web.Data.Entities;
+using Microsoft.AspNetCore.Mvc.Rendering;
 
 namespace Desastres.Web.Models
 {
@@ -37,6 +40,10 @@ namespace Desastres.Web.Models
         [Compare("Password")]
         public string PasswordConfirm { get; set; }
 
-
+        [Range(1, int.MaxValue, ErrorMessage = "Debe seleccionar una Entidad.")]
+        [Display(Name = "Entidad")]
+        public int EntidadTypeId { get; set; }
+        public IEnumerable<SelectListItem> EntidadTypes { get; set; }
+        
     }
 }

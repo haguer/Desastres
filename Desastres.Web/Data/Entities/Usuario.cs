@@ -17,6 +17,8 @@ namespace Desastres.Web.Data.Entities
 
         [Display(Name = "Full Name")]
         public string NombreApellido => $"{Nombres} {Apellidos}";
-        
+
+        public Entidad Entidades { get; set; }
+
     }
 }
