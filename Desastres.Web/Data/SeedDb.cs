@@ -25,12 +25,7 @@ namespace Desastres.Web.Data
             await _dataContext.Database.EnsureCreatedAsync();
             await CheckRoles();
             var manager = await CheckUserAsync("Henry", "Guerrero", "haguer78@gmail.com", "3167111278", "Admin");
-            var customer = await CheckUserAsync("Henry", "Guerrero", "haguer78@hotmail.com", "3167111278", "Encargado");
-            await CheckManagerAsync(manager);
-            await CheckOwnerAsync(customer);
-            await CheckEntidadesAsync();          
-
-
+            await CheckManagerAsync(manager);     
         }
 
         private async Task CheckRoles()
@@ -53,7 +48,7 @@ namespace Desastres.Web.Data
                     PhoneNumber = telefono     
                 };
 
-                await _userHelper.AddUserAsync(usuario, "V2lfjgmlhl_");
+                await _userHelper.AddUserAsync(usuario, "12345678");
                 await _userHelper.AddUserToRoleAsync(usuario, rol);
             }
             var token = await _userHelper.GenerateEmailConfirmationTokenAsync(usuario);
@@ -71,25 +66,8 @@ namespace Desastres.Web.Data
             }
         }
 
-        private async Task CheckOwnerAsync(Usuario user)
-        {
-            if (!_dataContext.Encargados.Any())
-            {
-                _dataContext.Encargados.Add(new Encargado { Usuarios = user });
-                await _dataContext.SaveChangesAsync();
-            }
-        }
 
-        private async Task CheckEntidadesAsync()
-        {
-            if (!_dataContext.Entidades.Any())
-            {
-                _dataContext.Entidades.Add(new Entidad { NombreEntidad = "Bomberos" });
-                _dataContext.Entidades.Add(new Entidad { NombreEntidad = "Cruz Roja" });
-                
-                await _dataContext.SaveChangesAsync();
-            }
-        }
+        
       
     }
 }

@@ -14,6 +14,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Soccer.Web.Helpers;
 
 namespace Desastres.Web
 {
@@ -34,6 +35,7 @@ namespace Desastres.Web
             services.AddDbContext<DataContext>(cfg =>
             {
                 cfg.UseNpgsql(Configuration.GetConnectionString("DefaultConnection"));
+               
             });
 
 
@@ -41,6 +43,7 @@ namespace Desastres.Web
             services.AddScoped<IUserHelper, UserHelper>();
             services.AddScoped<IMailHelper, MailHelper>();
             services.AddScoped<ICombosHelper, CombosHelper>();
+            services.AddScoped<IImageHelper, ImageHelper>();
 
             services.AddIdentity<Usuario, IdentityRole>(cfg =>
             {

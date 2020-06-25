@@ -7,6 +7,7 @@ using Desastres.Web.Data.Entities;
 using Desastres.Web.Data;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Authorization;
 
 namespace Desastres.Web.Controllers
 {
@@ -67,6 +68,7 @@ namespace Desastres.Web.Controllers
         {
             return View();
         }
+        [Authorize(Roles = "Encargado")]
         public async Task<IActionResult> ChangeUser()
         {
             var owner = await _dataContext.Encargados
@@ -109,7 +111,7 @@ namespace Desastres.Web.Controllers
 
             return View(view);
         }
-
+        [Authorize(Roles = "Encargado")]
         public IActionResult ChangePassword()
         {
             return View();
@@ -141,6 +143,7 @@ namespace Desastres.Web.Controllers
 
             return View(model);
         }
+
         public async Task<IActionResult> ConfirmEmail(string userId, string token)
         {
             if (string.IsNullOrEmpty(userId) || string.IsNullOrEmpty(token))

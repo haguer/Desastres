@@ -1,0 +1,63 @@
+﻿@model Desastres.Web.Data.Entities.Emergencia
+
+@{
+    ViewData["Title"] = "Detalles";
+}
+
+<h2>Reporte Incidente</h2>
+
+<div>
+    <h4>Detalles</h4>
+    <hr />
+    <div class="row">
+        <div class="col-md-4">
+
+            <dl class="dl-horizontal">
+
+                <dt>
+                    @Html.DisplayNameFor(model => model.NombreApellido)
+                </dt>
+                <dd>
+                    @Html.DisplayFor(model => model.NombreApellido)
+                </dd>
+                <dt>
+                    @Html.DisplayNameFor(model => model.direccion)
+                </dt>
+                <dd>
+                    @Html.DisplayFor(model => model.direccion)
+                </dd>
+
+                <dt>
+                    @Html.DisplayNameFor(model => model.telefono)
+                </dt>
+                <dd>
+                    @Html.DisplayFor(model => model.telefono)
+                </dd>
+                <dt>
+                    @Html.DisplayNameFor(model => model.FechaLocal)
+                </dt>
+                <dd>
+                    @Html.DisplayFor(model => model.FechaLocal)
+                </dd>
+                <dt>
+                    @Html.DisplayNameFor(model => model.Desastre.NombreDesastre)
+                </dt>
+                <dd>
+                    @Html.DisplayFor(model => model.Desastre.NombreDesastre)
+                </dd>
+            </dl>
+        </div>
+        <div class="col-md-4">
+            @if (!string.IsNullOrEmpty(Model.FotoRuta))
+            {
+                <img src="@Url.Content(Model.FotoRuta)" alt="Image" style="width:250px;height:250px;max-width: 100%; height: auto;" />
+            }
+        </div>
+    </div>
+        <div>
+            <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-warning">Editar</a>
+            <a asp-action="Index" class="btn btn-success">Regresar</a>
+        </div>
+
+
+       

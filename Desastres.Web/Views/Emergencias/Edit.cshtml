@@ -1,0 +1,68 @@
+﻿@model Desastres.Web.Models.EmergenciaViewModel
+@{
+    ViewData["Title"] = "Editar";
+}
+
+<h2>Editar</h2>
+
+<h4>Reporte de Desastres</h4>
+<hr />
+<div class="row">
+    <div class="col-md-4">
+        <form asp-action="Edit" enctype="multipart/form-data">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <input type="hidden" asp-for="Id" />
+            <input type="hidden" asp-for="FotoRuta" />
+            <div class="form-group">
+                <label asp-for="Nombres" class="control-label"></label>
+                <input asp-for="Nombres" class="form-control" />
+                <span asp-validation-for="Nombres" class="text-danger"></span>
+            </div>
+
+            <div class="form-group">
+                <label asp-for="Apellidos" class="control-label"></label>
+                <input asp-for="Apellidos" class="form-control" />
+                <span asp-validation-for="Apellidos" class="text-danger"></span>
+            </div>
+
+            <div class="form-group">
+                <label asp-for="telefono" class="control-label"></label>
+                <input asp-for="telefono" class="form-control" />
+                <span asp-validation-for="telefono" class="text-danger"></span>
+            </div>
+
+            <div class="form-group">
+                <label asp-for="direccion" class="control-label"></label>
+                <input asp-for="direccion" class="form-control" />
+                <span asp-validation-for="telefono" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="DesastresId" class="control-label"></label>
+                <select asp-for="DesastresId" asp-items="Model.Desastres" class="form-control"></select>
+                <span asp-validation-for="DesastresId" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="FotoDesastre" class="control-label"></label>
+                <input asp-for="FotoDesastre" class="form-control" type="file" />
+                <span asp-validation-for="FotoDesastre" class="text-danger"></span>
+
+            </div>
+            <div class="form-group">
+                <input type="hidden" asp-for="FechaIncidente" />
+                <input type="submit" value="Guardar" class="btn btn-primary" />
+                <a asp-action="Index" class="btn btn-success">Regresar</a>
+            </div>
+        </form>
+    </div>
+    <div class="col-md-4">
+        @if (!string.IsNullOrEmpty(Model.FotoRuta))
+        {
+            <img src="@Url.Content(Model.FotoRuta)" alt="Image" style="width:200px;height:200px;max-width: 100%; height: auto;" />
+        }
+    </div>
+
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}
