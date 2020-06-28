@@ -18,14 +18,17 @@ namespace Desastres.Web.Controllers
     {
         private readonly DataContext _dataContext;
         private readonly ICombosHelper _combosHelper;
+        private readonly IMailHelper _mailHelper;
         private readonly IImageHelper _imageHelper;
         public EmergenciasController(DataContext context,
             ICombosHelper combosHelper,
+            IMailHelper mailHelper,
             IImageHelper imageHelper)
         {
             _dataContext = context;
             _combosHelper = combosHelper;
             _imageHelper = imageHelper;
+            _mailHelper = mailHelper;
         }
         [Authorize(Roles = "Encargado")]
         // GET: Emergencias
@@ -124,8 +127,10 @@ namespace Desastres.Web.Controllers
                 };
                 _dataContext.Add(emergencia);
 
+
                 try
                 {
+                    EnviarEmail(view, path);                    
                     await _dataContext.SaveChangesAsync();
                     return RedirectToAction("Atencion", "Emergencias");
                 }
@@ -140,16 +145,75 @@ namespace Desastres.Web.Controllers
                         ModelState.AddModelError(string.Empty, ex.InnerException.Message);
                     }
                 }
+                
             }
+            
 
             return View(view);
         }
+        public void EnviarEmail(EmergenciaViewModel view, string path)
+        {
+            var listEnvioMensajes = (from d in _dataContext.TipoDesastres
+                                     join f in _dataContext.Funciones
+                                     on d.Id equals f.TipoDesastresId
+                                     join en in _dataContext.Entidades
+                                     on f.EntidadesId equals en.Id
+                                     join e in _dataContext.Encargados
+                                     on en.Id equals e.Usuarios.Entidades.Id
 
+                                     where d.Id == view.DesastresId
+
+                                     select new
+                                     {
+                                         e.Usuarios.Email,
+                                         e.Usuarios.PhoneNumber,
+                                         en.email,
+                                         en.telefono,
+                                         d.NombreDesastre
+
+
+                                     }).ToList();
+
+            foreach (var item in listEnvioMensajes)
+            {
+                if (path != null)
+                {
+                    _mailHelper.SendMail(item.Email, "Desastre Reportado", "Se reporto " + item.NombreDesastre +
+                    "<br> En la dirección: " + view.direccion + "<br>Reportado: " + view.NombreApellido +
+                    "<br> Teléfono:" + view.telefono +
+                    "<br> Fecha y Hora:" + view.FechaLocal +
+                    "<br>  <img src=" + Url.Action(path) + " alt='Image' style='width: 200px; height: 200px; max - width: 100 %; height: auto; ' />");
+
+                    _mailHelper.SendMail(item.email, "Desastre Reportado", "Se reporto " + item.NombreDesastre +
+                    "<br> En la dirección: " + view.direccion + "<br>Reportado: " + view.NombreApellido +
+                    "<br> Teléfono:" + view.telefono +
+                    "<br> Fecha y Hora:" + view.FechaLocal +
+                     "<br>  <img src=" + Url.Action(path) + " alt='Image' style='width: 200px; height: 200px; max - width: 100 %; height: auto; ' />");
+
+                }
+                else
+                {
+                    _mailHelper.SendMail(item.Email, "Desastre Reportado", "Se reporto " + item.NombreDesastre +
+                     "<br> En la dirección: " + view.direccion + "<br>Reportado: " + view.NombreApellido +
+                      "<br> Teléfono:" + view.telefono +
+                     "<br> Fecha y Hora:" + view.FechaLocal +
+                     "<br> Mo inserto imagen del incidente");
+
+
+                    _mailHelper.SendMail(item.Email, "Desastre Reportado", "Se reporto " + item.NombreDesastre +
+                        "<br> En la dirección: " + view.direccion + "<br>Reportado: " + view.NombreApellido +
+                         "<br> Teléfono:" + view.telefono +
+                        "<br> Fecha y Hora:" + view.FechaLocal +
+                        "<br> Mo inserto imagen del incidente");
+                }
+            }
+        }
         public IActionResult Atencion()
         {
            
             return View();
         }
+
         [Authorize(Roles = "Encargado")]
         // GET: Emergencias/Edit/5
         public async Task<IActionResult> Edit(int? id)
