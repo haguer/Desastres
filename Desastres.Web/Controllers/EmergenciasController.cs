@@ -1,16 +1,18 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Rendering;
-using Microsoft.EntityFrameworkCore;
-using Desastres.Web.Data;
+﻿using Desastres.Web.Data;
 using Desastres.Web.Data.Entities;
 using Desastres.Web.Helpers;
 using Desastres.Web.Models;
-using Soccer.Web.Helpers;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
+using Soccer.Web.Helpers;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Net.Http;
+using System.Net.Http.Headers;
+using System.Threading.Tasks;
 
 namespace Desastres.Web.Controllers
 {
@@ -20,21 +22,26 @@ namespace Desastres.Web.Controllers
         private readonly ICombosHelper _combosHelper;
         private readonly IMailHelper _mailHelper;
         private readonly IImageHelper _imageHelper;
+        private readonly IConfiguration _configuration;
+
         public EmergenciasController(DataContext context,
             ICombosHelper combosHelper,
             IMailHelper mailHelper,
-            IImageHelper imageHelper)
+            IImageHelper imageHelper,
+            IConfiguration configuration
+           )
         {
             _dataContext = context;
             _combosHelper = combosHelper;
             _imageHelper = imageHelper;
             _mailHelper = mailHelper;
+            _configuration = configuration;
         }
         [Authorize(Roles = "Encargado")]
         // GET: Emergencias
         public IActionResult Index()
         {
-           var usuario= HttpContext.User.Identity.Name;
+            var usuario = HttpContext.User.Identity.Name;
 
             var Encargado = (from e in _dataContext.Encargados
                              where e.Usuarios.Email == usuario
@@ -46,12 +53,12 @@ namespace Desastres.Web.Controllers
                              ).FirstOrDefault();
 
             int entidadid = Encargado.Id;
-            
+
             var listEmergencias = (from e in _dataContext.Emergencias
                                    join d in _dataContext.TipoDesastres on e.Desastre.Id equals d.Id
                                    join f in _dataContext.Funciones on d.Id equals f.TipoDesastresId
-                                   
-                                   where f.EntidadesId==entidadid
+
+                                   where f.EntidadesId == entidadid
 
                                    select new DataViewModel
                                    {
@@ -60,7 +67,7 @@ namespace Desastres.Web.Controllers
                                        FechaLocal = e.FechaLocal,
                                        DesastreId = e.Desastre.Id,
                                        NombreDesastres = d.NombreDesastre,
-                                       EmergenciaId= e.Id
+                                       EmergenciaId = e.Id
 
                                    }).ToList();
             return View(listEmergencias);
@@ -77,7 +84,7 @@ namespace Desastres.Web.Controllers
             }
 
             var owner = await _dataContext.Emergencias
-                .Include(o => o.Desastre)               
+                .Include(o => o.Desastre)
                 .FirstOrDefaultAsync(o => o.Id == id.Value);
             if (owner == null)
             {
@@ -86,22 +93,22 @@ namespace Desastres.Web.Controllers
 
             return View(owner);
         }
-  
+
         // GET: Emergencias/Create
         public IActionResult Create()
         {
             var model = new EmergenciaViewModel
             {
                 Desastres = _combosHelper.GetComboDesastresTypes(),
-                FechaIncidente=DateTime.UtcNow,
+                FechaIncidente = DateTime.UtcNow,
                 fecha = DateTime.Now.ToString("d"),
-                hora =DateTime.Now.ToString("hh:mm tt")
-        };
+                hora = DateTime.Now.ToString("hh:mm tt")
+            };
             return View(model);
         }
 
         // POST: Emergencias/Create        
-       
+
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(EmergenciaViewModel view)
@@ -130,7 +137,7 @@ namespace Desastres.Web.Controllers
 
                 try
                 {
-                    EnviarEmail(view, path);                    
+                    EnviarEmail(view, path);
                     await _dataContext.SaveChangesAsync();
                     return RedirectToAction("Atencion", "Emergencias");
                 }
@@ -145,13 +152,13 @@ namespace Desastres.Web.Controllers
                         ModelState.AddModelError(string.Empty, ex.InnerException.Message);
                     }
                 }
-                
-            }
-            
 
+            }
+
+            view.Desastres = _combosHelper.GetComboDesastresTypes();
             return View(view);
         }
-        public void EnviarEmail(EmergenciaViewModel view, string path)
+        public void EnviarEmail(EmergenciaViewModel view, string? path)
         {
             var listEnvioMensajes = (from d in _dataContext.TipoDesastres
                                      join f in _dataContext.Funciones
@@ -176,19 +183,72 @@ namespace Desastres.Web.Controllers
 
             foreach (var item in listEnvioMensajes)
             {
+                HttpClient client = new HttpClient
+                {
+                    BaseAddress = new Uri("http://www.altiria.net"),
+
+                    Timeout = TimeSpan.FromSeconds(60)
+                };
+
+
+                var postData = new List<KeyValuePair<string, string>>
+                {
+                    new KeyValuePair<string, string>("cmd", _configuration["Sms:cmd"]),
+                    new KeyValuePair<string, string>("domainId", _configuration["Sms:domainId"]),
+                    new KeyValuePair<string, string>("login", _configuration["Sms:login"]),
+                    new KeyValuePair<string, string>("passwd", _configuration["Sms:passwd"]),
+                    new KeyValuePair<string, string>("dest", "57" + item.telefono),
+                    new KeyValuePair<string, string>("dest", "57" + item.PhoneNumber),
+                    new KeyValuePair<string, string>("msg", "Se reporto " + item.NombreDesastre +
+                    " En la dirección: " + view.direccion + " Reportado por : " + view.NombreApellido +
+                    " Teléfono:" + view.telefono +
+                    " Fecha y Hora:" + view.FechaLocal)
+                };
+
+                HttpContent content = new FormUrlEncodedContent(postData);
+                string err = "";
+                string resp = "";
+                try
+                {
+
+                    HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, "/api/http")
+                    {
+                        Content = content
+                    };
+                    content.Headers.ContentType.CharSet = "UTF-8";
+                    request.Content.Headers.ContentType =
+                      new MediaTypeHeaderValue("application/x-www-form-urlencoded");
+                    HttpResponseMessage response = client.SendAsync(request).Result;
+                    var responseString = response.Content.ReadAsStringAsync();
+                    resp = responseString.Result;
+                }
+                catch (Exception e)
+                {
+                    err = e.Message;
+                }
+                finally
+                {
+                    if (err != "")
+                    {
+                        Console.WriteLine(err);
+                    }
+                    else
+                    {
+                        Console.WriteLine(resp);
+                    }
+                }
                 if (path != null)
                 {
                     _mailHelper.SendMail(item.Email, "Desastre Reportado", "Se reporto " + item.NombreDesastre +
                     "<br> En la dirección: " + view.direccion + "<br>Reportado: " + view.NombreApellido +
                     "<br> Teléfono:" + view.telefono +
                     "<br> Fecha y Hora:" + view.FechaLocal +
-                    "<br>  <img src=" + Url.Action(path) + " alt='Image' style='width: 200px; height: 200px; max - width: 100 %; height: auto; ' />");
-
+                    "<br>  <img src='https://atenciondesastres.azurewebsites.net" + path.Substring(1) + "' alt='Image' style='width: 200px; height: 200px; max - width: 100 %; height: auto; ' />");
                     _mailHelper.SendMail(item.email, "Desastre Reportado", "Se reporto " + item.NombreDesastre +
                     "<br> En la dirección: " + view.direccion + "<br>Reportado: " + view.NombreApellido +
                     "<br> Teléfono:" + view.telefono +
                     "<br> Fecha y Hora:" + view.FechaLocal +
-                     "<br>  <img src=" + Url.Action(path) + " alt='Image' style='width: 200px; height: 200px; max - width: 100 %; height: auto; ' />");
+                     "<br>  <img src='https://atenciondesastres.azurewebsites.net" + path.Substring(1) + "' alt='Image' style='width: 200px; height: 200px; max - width: 100 %; height: auto; ' />");
 
                 }
                 else
@@ -199,18 +259,18 @@ namespace Desastres.Web.Controllers
                      "<br> Fecha y Hora:" + view.FechaLocal +
                      "<br> Mo inserto imagen del incidente");
 
-
-                    _mailHelper.SendMail(item.Email, "Desastre Reportado", "Se reporto " + item.NombreDesastre +
+                    _mailHelper.SendMail(item.email, "Desastre Reportado", "Se reporto " + item.NombreDesastre +
                         "<br> En la dirección: " + view.direccion + "<br>Reportado: " + view.NombreApellido +
                          "<br> Teléfono:" + view.telefono +
                         "<br> Fecha y Hora:" + view.FechaLocal +
                         "<br> Mo inserto imagen del incidente");
                 }
             }
+
         }
         public IActionResult Atencion()
         {
-           
+
             return View();
         }
 
@@ -287,6 +347,7 @@ namespace Desastres.Web.Controllers
         }
 
         [Authorize(Roles = "Encargado")]
+
         public async Task<IActionResult> Delete(int? id)
         {
             if (id == null)
@@ -294,7 +355,7 @@ namespace Desastres.Web.Controllers
                 return NotFound();
             }
 
-            var emergencia = await _dataContext.Emergencias               
+            var emergencia = await _dataContext.Emergencias
                 .FirstOrDefaultAsync(o => o.Id == id.Value);
             if (emergencia == null)
             {
