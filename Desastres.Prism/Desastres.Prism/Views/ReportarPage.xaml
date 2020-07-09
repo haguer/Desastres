@@ -1,0 +1,100 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://xamarin.com/schemas/2014/forms"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:prism="http://prismlibrary.com"
+              xmlns:ios="clr-namespace:Xamarin.Forms.PlatformConfiguration.iOSSpecific;assembly=Xamarin.Forms.Core"
+             ios:Page.UseSafeArea="true"
+             prism:ViewModelLocator.AutowireViewModel="True"
+             x:Class="Desastres.Prism.Views.ReportarPage"
+             BackgroundColor="{StaticResource ColorBackgroud}"
+             Title="{Binding Title}">
+    <AbsoluteLayout>
+        <StackLayout AbsoluteLayout.LayoutBounds="0,0,1,1"
+                     AbsoluteLayout.LayoutFlags="All"
+                     Padding="5">
+            <ScrollView>
+                <StackLayout>
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="3*"/>
+                        </Grid.ColumnDefinitions>
+
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>                                                     
+                        </Grid.RowDefinitions>
+
+                        <Label Grid.Row="0"
+                               Grid.Column="0"
+                               Text="Nombres"
+                               VerticalOptions="Center"/>
+                        <Entry Grid.Row="0"
+                               Grid.Column="1"                               
+                               Placeholder="Digite Nombres"
+                               Text="{Binding Emergencia.Nombres}"/>
+
+                        <Label Grid.Row="1"
+                               Grid.Column="0"
+                               Text="Apellidos"
+                               VerticalOptions="Center"/>
+                        <Entry Grid.Row="1"
+                               Grid.Column="1"
+                               Placeholder="Digite Apellidos"
+                               Text="{Binding Emergencia.Apellidos}"/>
+
+                        <Label Grid.Row="2"
+                               Grid.Column="0"
+                               Text="Télefono"
+                               VerticalOptions="Center"/>
+                        <Entry Grid.Row="2"
+                               Grid.Column="1"
+                               Placeholder="Digite Teléfono"
+                                Keyboard="Telephone"
+                               Text="{Binding Emergencia.Telefono}"/>
+
+                        <Label Grid.Row="3"
+                               Grid.Column="0"
+                               Text="Dirección del incidente"
+                               VerticalOptions="Center"/>
+                        <Entry Grid.Row="3"
+                               Grid.Column="1"
+                               Placeholder="Digite Dirección"
+                               Text="{Binding Emergencia.Direccion}"/>
+                        <Label Grid.Row="4"
+                               Grid.Column="0"
+                               Text="Tipo Desastre"
+                               VerticalOptions="Center"/>
+                        <Picker Grid.Row="4"
+                                Grid.Column="1"
+                                ItemDisplayBinding="{Binding NombreDesastre}"
+                                ItemsSource="{Binding Desastres}"
+                                SelectedItem="{Binding Desastre}"
+                                Title="Tipo de desastre">
+                        </Picker>
+
+                        <Label Grid.Row="5"
+                               Grid.Column="0"
+                               Text="Foto Incidente"
+                               VerticalOptions="Center"/>
+                        <Entry Grid.Row="5" 
+                               Grid.Column="1"                              
+                               Placeholder="Insertar Foto"
+                               Text="{Binding Fotoincidente}"/>     
+                    </Grid>
+                </StackLayout>
+            </ScrollView>
+            <ActivityIndicator
+            	IsRunning="{Binding IsRunning}"
+            	VerticalOptions="CenterAndExpand"/>
+
+            <Button Command="{Binding RegisterCommand}"
+                    IsEnabled="{Binding IsEnabled}"
+                    Text="Reportar"/>
+        </StackLayout>
+        
+    </AbsoluteLayout>
+</ContentPage>
